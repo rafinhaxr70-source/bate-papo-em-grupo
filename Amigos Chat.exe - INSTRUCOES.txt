@@ -1,8 +1,0 @@
-VERSÃO SEM INSTALAR NODE.JS
-
-O arquivo executável real precisa embutir um runtime do Node.js (ou ser empacotado com Electron).
-Neste ambiente não consigo compilar um .exe Windows nativo confiável.
-
-A pasta contém o projeto completo e o launcher "Iniciar Amigos Chat.bat".
-Para transformar em um único .exe no Windows, use Electron Builder com o projeto.
-
