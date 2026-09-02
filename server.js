@@ -51,22 +51,12 @@ io.on("connection",socket=>{
     text=String(text||"").trim().slice(0,500);
     if(text)io.to("chat").emit("message",{username,text,time:Date.now()});
   });
-  socket.on("call:invite",()=>{
-    const username=online.get(socket.id);
-    if(username)socket.broadcast.to("chat").emit("call:incoming",{from:username});
-  });
-  socket.on("call:accept",()=>{
-    const username=online.get(socket.id);
-    if(username)socket.broadcast.to("chat").emit("call:accepted",{from:username});
-  });
-  socket.on("call:reject",()=>{
-    const username=online.get(socket.id);
-    if(username)socket.broadcast.to("chat").emit("call:rejected",{from:username});
-  });
-  socket.on("webrtc:offer",data=>socket.broadcast.to("chat").emit("webrtc:offer",{...data,from:socket.id}));
-  socket.on("webrtc:answer",data=>socket.broadcast.to("chat").emit("webrtc:answer",{...data,from:socket.id}));
-  socket.on("webrtc:ice",data=>socket.broadcast.to("chat").emit("webrtc:ice",{...data,from:socket.id}));
-  socket.on("call:end",()=>socket.broadcast.to("chat").emit("call:ended"));
+  socket.on("call:request",({toUser})=>{const from=online.get(socket.id);if(!from)return;for(const [sid,u] of online){if(u===toUser)io.to(sid).emit("call:request",{from});}});
+  socket.on("call:ready",({to})=>{if(to)io.to(to).emit("call:ready",{from:socket.id});});
+  socket.on("webrtc:offer",data=>{if(data?.to)io.to(data.to).emit("webrtc:offer",{...data,from:socket.id});});
+  socket.on("webrtc:answer",data=>{if(data?.to)io.to(data.to).emit("webrtc:answer",{...data,from:socket.id});});
+  socket.on("webrtc:ice",data=>{if(data?.to)io.to(data.to).emit("webrtc:ice",{...data,from:socket.id});});
+  socket.on("call:end",()=>socket.broadcast.to("chat").emit("call:end"));
   socket.on("disconnect",()=>{online.delete(socket.id);io.to("chat").emit("presence",[...online.values()]);});
 });
 
