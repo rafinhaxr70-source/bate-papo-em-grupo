@@ -1,0 +1,21 @@
+AMIGOS CHAT — COLOCAR ONLINE NO RENDER
+
+O projeto já está preparado para o Render.
+
+1. Crie uma conta em https://render.com/
+2. Crie um repositório no GitHub e envie os arquivos desta pasta.
+3. No Render, clique em New > Web Service.
+4. Conecte o repositório do Amigos Chat.
+5. Use:
+   Build Command: npm install
+   Start Command: npm start
+6. Escolha Free para testar.
+7. Clique em Create Web Service.
+8. Quando terminar, o Render vai mostrar uma URL https://...onrender.com
+9. Abra essa URL no navegador. Essa será a versão online do chat.
+
+IMPORTANTE
+- O servidor agora escuta em 0.0.0.0, necessário para hospedagem.
+- O executável do PC ainda abre o servidor local por padrão.
+- Para o EXE usar o chat online, é preciso gerar uma nova versão apontando para a URL do Render.
+- No plano gratuito, o armazenamento de users.json não é permanente. Para manter contas após reinícios, use um banco de dados.

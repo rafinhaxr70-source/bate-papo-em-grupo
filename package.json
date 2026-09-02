@@ -1,0 +1,38 @@
+{
+  "name": "amigos-chat-desktop",
+  "version": "1.0.1",
+  "private": true,
+  "description": "Amigos Chat em português — chat e chamadas de voz sem e-mail.",
+  "main": "electron-main.js",
+  "author": "Amigos Chat",
+  "scripts": {
+    "start": "node server.js",
+    "build": "electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.amigoschat.app",
+    "productName": "Amigos Chat",
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "files": [
+      "**/*",
+      "!node_modules/.cache/**/*"
+    ]
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "electron": "^38.1.0",
+    "electron-builder": "^26.0.12"
+  }
+}

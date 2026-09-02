@@ -1,0 +1,15 @@
+AMIGOS CHAT — VERSÃO CORRIGIDA E EM PORTUGUÊS
+
+1. Extraia esta pasta.
+2. Abra o CMD dentro dela.
+3. Execute:
+   npm install
+4. Depois:
+   npm run build
+5. Abra a pasta dist.
+6. O arquivo "Amigos Chat 1.0.1.exe" será o aplicativo.
+
+A correção principal espera o servidor local ficar pronto antes de abrir a janela, evitando o erro:
+Unexpected token '<', "<!DOCTYPE"... is not valid JSON
+
+O aplicativo também está em português e o sinal de resposta da chamada foi corrigido.

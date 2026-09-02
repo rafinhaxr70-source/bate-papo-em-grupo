@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amigos Chat</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="login" class="screen">
+  <div class="card">
+    <div class="logo">💬</div>
+    <h1>Amigos Chat</h1>
+    <p>Entre sem e-mail.</p>
+    <input id="user" placeholder="Nome de usuário" maxlength="20">
+    <input id="pass" type="password" placeholder="Senha">
+    <button id="loginBtn">Entrar</button>
+    <button id="registerBtn" class="secondary">Criar conta</button>
+    <small id="loginMsg"></small>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <header>
+    <div><b>💬 Amigos</b><span id="me"></span></div>
+    <button id="callBtn">📞 Ligar</button>
+  </header>
+  <aside>
+    <h3>Online</h3>
+    <div id="online"></div>
+  </aside>
+  <main>
+    <div id="messages"></div>
+    <form id="form">
+      <input id="msg" autocomplete="off" placeholder="Digite uma mensagem...">
+      <button>➤</button>
+    </form>
+  </main>
+</div>
+
+<div id="callModal" class="modal hidden">
+  <div class="callCard">
+    <div class="phone">📞</div>
+    <h2 id="callTitle">Chamada</h2>
+    <p id="callStatus">Chamando...</p>
+    <div class="callActions">
+      <button id="accept" class="accept hidden">Atender</button>
+      <button id="reject" class="reject">Recusar</button>
+      <button id="end" class="reject hidden">Encerrar</button>
+    </div>
+  </div>
+</div>
+
+<audio id="ring" src="/assets/du-bist-gut-genug.mp3" preload="auto" loop></audio>
+<script src="/config.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

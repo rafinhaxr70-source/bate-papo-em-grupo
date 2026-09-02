@@ -1,0 +1,15 @@
+SERVIDOR ONLINE — RENDER
+
+1. Crie um repositório no GitHub e envie todos os arquivos desta pasta.
+2. No Render, crie New -> Web Service e conecte esse repositório.
+3. Build Command: npm install
+4. Start Command: npm start
+5. Escolha o plano Free para teste.
+6. Depois do deploy, o Render fornecerá uma URL parecida com:
+   https://seu-app.onrender.com
+
+IMPORTANTE:
+- O servidor já está configurado para ouvir em 0.0.0.0.
+- O Free do Render pode dormir após 15 min sem tráfego e levar cerca de 1 minuto para acordar.
+- O arquivo users.json é temporário no Free. Para contas que não desapareçam após reinícios, depois devemos colocar um banco de dados.
+- O executável desktop precisa ser configurado para apontar para a URL do Render antes de ser distribuído.
