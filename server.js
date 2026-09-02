@@ -25,7 +25,7 @@ app.post("/api/register",(req,res)=>{
     return res.status(400).json({error:"O usuário deve ter de 3 a 20 caracteres e usar apenas letras, números ou _."});
   if(password.length<4) return res.status(400).json({error:"A senha precisa ter pelo menos 4 caracteres."});
   if(users[username]) return res.status(409).json({error:"Esse usuário já existe."});
-  users[username]={password:hash(password)}; saveUsers();
+  users[username]={password:hash(password),avatar:"",banner:"",description:""}; saveUsers();
   res.json({ok:true,username});
 });
 
@@ -37,6 +37,9 @@ app.post("/api/login",(req,res)=>{
   res.json({ok:true,username});
 });
 
+function safeProfile(username){const u=users[username];return {username,avatar:u?.avatar||"",banner:u?.banner||"",description:u?.description||""};}
+app.get("/api/profile/:username",(req,res)=>{const username=String(req.params.username||"");if(!users[username])return res.status(404).json({error:"Usuário não encontrado."});res.json(safeProfile(username));});
+app.put("/api/profile",(req,res)=>{const username=String(req.body.username||req.headers["x-username"]||"").trim();if(!users[username])return res.status(401).json({error:"Usuário não encontrado."});const avatar=String(req.body.avatar||"");const banner=String(req.body.banner||"");const description=String(req.body.description||"").slice(0,160);if(avatar && !/^data:image\/(png|jpeg|webp);base64,/.test(avatar))return res.status(400).json({error:"Foto inválida."});if(banner && !/^data:image\/(png|jpeg|webp);base64,/.test(banner))return res.status(400).json({error:"Banner inválido."});if(avatar.length>3000000||banner.length>3000000)return res.status(400).json({error:"Imagem muito grande."});users[username]={...users[username],avatar,banner,description};saveUsers();res.json(safeProfile(username));});
 const online=new Map();
 io.on("connection",socket=>{
   socket.on("login",username=>{

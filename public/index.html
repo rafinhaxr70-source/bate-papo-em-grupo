@@ -1,59 +1,19 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Amigos Chat</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Amigos Chat</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="login" class="screen">
-  <div class="card">
-    <div class="logo">💬</div>
-    <h1>Amigos Chat</h1>
-    <p>Entre sem e-mail.</p>
-    <input id="user" placeholder="Nome de usuário" maxlength="20">
-    <input id="pass" type="password" placeholder="Senha">
-    <button id="loginBtn">Entrar</button>
-    <button id="registerBtn" class="secondary">Criar conta</button>
-    <small id="loginMsg"></small>
-  </div>
-</div>
-
+<div id="login" class="screen"><div class="card"><div class="logo">💬</div><h1>Amigos Chat</h1><p>Entre sem e-mail.</p><input id="user" placeholder="Nome de usuário" maxlength="20"><input id="pass" type="password" placeholder="Senha"><button id="loginBtn">Entrar</button><button id="registerBtn" class="secondary">Criar conta</button><small id="loginMsg"></small></div></div>
 <div id="app" class="app hidden">
-  <header>
-    <div><b>💬 Amigos</b><span id="me"></span></div>
-    <button id="callBtn">📞 Ligar</button>
-  </header>
-  <aside>
-    <h3>Online</h3>
-    <div id="online"></div>
-  </aside>
-  <main>
-    <div id="messages"></div>
-    <form id="form">
-      <input id="msg" autocomplete="off" placeholder="Digite uma mensagem...">
-      <button>➤</button>
-    </form>
-  </main>
-</div>
+<header><div class="brand"><b>💬 Amigos</b><span id="me"></span></div><div class="headerActions"><button id="profileBtn" class="profileBtn">👤 Perfil</button><button id="callBtn">📞 Ligar</button></div></header>
+<aside><h3>Online</h3><div id="online"></div></aside>
+<main><div id="messages"></div><form id="form"><input id="msg" autocomplete="off" placeholder="Digite uma mensagem..."><button>➤</button></form></main></div>
 
-<div id="callModal" class="modal hidden">
-  <div class="callCard">
-    <div class="phone">📞</div>
-    <h2 id="callTitle">Chamada</h2>
-    <p id="callStatus">Chamando...</p>
-    <div class="callActions">
-      <button id="accept" class="accept hidden">Atender</button>
-      <button id="reject" class="reject">Recusar</button>
-      <button id="end" class="reject hidden">Encerrar</button>
-    </div>
-  </div>
-</div>
-
+<div id="profileModal" class="modal hidden"><div class="profileCard"><button id="closeProfile" class="close">×</button><div id="profileBanner" class="profileBanner"><div id="profileAvatar" class="profileAvatar">👤</div></div><div class="profileBody"><h2 id="profileName"></h2><p id="profileDescription" class="description">Sem descrição.</p><button id="editProfileBtn">✏️ Editar perfil</button></div></div></div>
+<div id="editModal" class="modal hidden"><div class="editCard"><button id="closeEdit" class="close">×</button><h2>Editar perfil</h2><label>Foto de perfil<input id="avatarInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div id="avatarPreview" class="preview avatarPreview">👤</div><label>Banner do perfil<input id="bannerInput" type="file" accept="image/png,image/jpeg,image/webp"></label><div id="bannerPreview" class="preview bannerPreview"></div><label>Descrição<textarea id="descriptionInput" maxlength="160" placeholder="Fale um pouco sobre você..."></textarea></label><button id="saveProfileBtn">Salvar perfil</button><small id="profileMsg"></small></div></div>
+<div id="callModal" class="modal hidden"><div class="callCard"><div class="phone">📞</div><h2 id="callTitle">Chamada</h2><p id="callStatus">Chamando...</p><div class="callActions"><button id="accept" class="accept hidden">Atender</button><button id="reject" class="reject">Recusar</button><button id="end" class="reject hidden">Encerrar</button></div></div></div>
 <audio id="ring" src="/assets/du-bist-gut-genug.mp3" preload="auto" loop></audio>
-<script src="/config.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-<script src="app.js"></script>
-</body>
-</html>
+<script src="/config.js"></script><script src="/socket.io/socket.io.js"></script><script src="app.js"></script>
+</body></html>

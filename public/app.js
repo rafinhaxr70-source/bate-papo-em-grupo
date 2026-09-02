@@ -1,104 +1,19 @@
 const socket = io(window.CHAT_SERVER_URL || location.origin);
-let username = "";
-let pc = null;
-let localStream = null;
-let inCall = false;
-
-const $ = id => document.getElementById(id);
-const loginBox = $("login"), app = $("app"), ring = $("ring");
-
-async function auth(url) {
-  const usernameInput = $("user").value.trim();
-  const password = $("pass").value;
-  const r = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:usernameInput,password})});
-  const d = await r.json();
-  if(!r.ok) throw new Error(d.error);
-  username = d.username;
-  loginBox.classList.add("hidden"); app.classList.remove("hidden"); $("me").textContent = "@" + username;
-  socket.emit("login", username);
-}
-
-$("loginBtn").onclick = async()=>{try{await auth("/api/login")}catch(e){$("loginMsg").textContent=e.message}};
-$("registerBtn").onclick = async()=>{try{await auth("/api/register")}catch(e){$("loginMsg").textContent=e.message}};
-
-$("form").onsubmit = e => {
-  e.preventDefault();
-  const v=$("msg").value.trim(); if(!v)return;
-  socket.emit("message",v); $("msg").value="";
-};
-
-socket.on("message",m=>{
-  const div=document.createElement("div"); div.className="message";
-  div.innerHTML=`<b>${escapeHtml(m.username)}</b> <span>${escapeHtml(m.text)}</span>`;
-  $("messages").appendChild(div); $("messages").scrollTop=$("messages").scrollHeight;
-});
-socket.on("presence", list=>{
-  $("online").innerHTML="";
-  list.forEach(u=>{const d=document.createElement("div");d.textContent="🟢 "+u;$("online").appendChild(d)});
-});
-
+let username="", pc=null, localStream=null, inCall=false, currentProfile=null;
+const $=id=>document.getElementById(id), loginBox=$("login"), app=$("app"), ring=$("ring");
+async function auth(url){const usernameInput=$("user").value.trim(),password=$("pass").value;const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username:usernameInput,password})});const d=await r.json();if(!r.ok)throw new Error(d.error);username=d.username;loginBox.classList.add("hidden");app.classList.remove("hidden");$("me").textContent="@"+username;socket.emit("login",username);loadProfile(username);}
+$("loginBtn").onclick=async()=>{try{await auth("/api/login")}catch(e){$("loginMsg").textContent=e.message}};$("registerBtn").onclick=async()=>{try{await auth("/api/register")}catch(e){$("loginMsg").textContent=e.message}};
+$("form").onsubmit=e=>{e.preventDefault();const v=$("msg").value.trim();if(!v)return;socket.emit("message",v);$("msg").value=""};
+socket.on("message",m=>{const div=document.createElement("div");div.className="message";div.innerHTML=`<b data-user="${escapeHtml(m.username)}">${escapeHtml(m.username)}</b> <span>${escapeHtml(m.text)}</span>`;div.querySelector("b").onclick=()=>openProfile(m.username);$("messages").appendChild(div);$("messages").scrollTop=$("messages").scrollHeight});
+socket.on("presence",list=>{$("online").innerHTML="";list.forEach(u=>{const d=document.createElement("div");d.textContent="🟢 "+u;d.onclick=()=>openProfile(u);$("online").appendChild(d)})});
 function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-
-$("callBtn").onclick=()=>startCall();
-
-async function getMic(){
-  return navigator.mediaDevices.getUserMedia({audio:true,video:false});
-}
-async function makePC(){
-  pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-  pc.onicecandidate=e=>{if(e.candidate)socket.emit("webrtc:ice",{candidate:e.candidate})};
-  pc.ontrack=e=>{
-    let audio=document.getElementById("remoteAudio");
-    if(!audio){audio=document.createElement("audio");audio.id="remoteAudio";audio.autoplay=true;document.body.appendChild(audio)}
-    audio.srcObject=e.streams[0];
-  };
-  localStream=await getMic();
-  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
-}
-async function startCall(){
-  if(inCall)return;
-  inCall=true; showCall("Ligando...", "Você iniciou uma chamada.", false);
-  await makePC();
-  const offer=await pc.createOffer(); await pc.setLocalDescription(offer);
-  socket.emit("call:invite"); socket.emit("webrtc:offer",{offer});
-}
-socket.on("call:incoming",d=>{
-  showCall("Chamada recebida",`${d.from} está ligando...`,true); ring.currentTime=0; ring.play().catch(()=>{});
-});
-socket.on("call:accepted",()=>{$("callStatus").textContent="Chamada conectada.";});
-socket.on("webrtc:offer",async({offer})=>{
-  if(inCall)return;
-  inCall=true; ring.pause();
-  await makePC(); await pc.setRemoteDescription(offer);
-  const answer=await pc.createAnswer(); await pc.setLocalDescription(answer);
-  socket.emit("webrtc:answer", {answer});
-});
-socket.on("webrtc:answer",async({answer})=>{
-  if(pc) await pc.setRemoteDescription(answer);
-});
-socket.on("webrtc:ice",async({candidate})=>{
-  if(pc && candidate) try{await pc.addIceCandidate(candidate)}catch{}
-});
-socket.on("call:ended",endCall);
-$("accept").onclick=async()=>{
-  ring.pause(); $("accept").classList.add("hidden"); $("reject").classList.add("hidden"); $("end").classList.remove("hidden");
-  $("callStatus").textContent="Conectando...";
-  socket.emit("call:accept");
-};
-$("reject").onclick=()=>{ring.pause();socket.emit("call:reject");hideCall()};
-$("end").onclick=()=>{socket.emit("call:end");endCall()};
-
-function showCall(title,status,incoming){
-  $("callTitle").textContent=title;$("callStatus").textContent=status;
-  $("callModal").classList.remove("hidden");
-  $("accept").classList.toggle("hidden",!incoming);
-  $("end").classList.toggle("hidden",incoming);
-  $("reject").classList.toggle("hidden",!incoming);
-}
-function hideCall(){$("callModal").classList.add("hidden")}
-function endCall(){
-  ring.pause(); ring.currentTime=0;
-  if(localStream)localStream.getTracks().forEach(t=>t.stop());
-  if(pc){pc.close();pc=null}
-  inCall=false;hideCall();
-}
+async function loadProfile(u){try{const r=await fetch("/api/profile/"+encodeURIComponent(u));if(r.ok){const p=await r.json();if(u===username)renderOwnProfile(p)}}catch{}}
+function applyProfile(p){$("profileName").textContent=p.username;$("profileDescription").textContent=p.description||"Sem descrição.";$("profileAvatar").style.backgroundImage=p.avatar?`url(${p.avatar})`:"none";$("profileAvatar").textContent=p.avatar?"":"👤";$("profileBanner").style.backgroundImage=p.banner?`url(${p.banner})`:"none"}
+function renderOwnProfile(p){currentProfile=p;applyProfile(p)}
+async function openProfile(u){try{const r=await fetch("/api/profile/"+encodeURIComponent(u));if(!r.ok)return;const p=await r.json();currentProfile=p;applyProfile(p);$("editProfileBtn").classList.toggle("hidden",u!==username);$("profileModal").classList.remove("hidden")}catch{}}
+$("profileBtn").onclick=()=>openProfile(username);$("closeProfile").onclick=()=>$("profileModal").classList.add("hidden");$("editProfileBtn").onclick=()=>{if(currentProfile?.username!==username)return;$("profileModal").classList.add("hidden");$("descriptionInput").value=currentProfile.description||"";setPreview("avatarPreview",currentProfile.avatar);setPreview("bannerPreview",currentProfile.banner);$("profileMsg").textContent="";$("editModal").classList.remove("hidden")};$("closeEdit").onclick=()=>$("editModal").classList.add("hidden");
+function setPreview(id,url){const e=$(id);e.style.backgroundImage=url?`url(${url})`:"none";e.textContent=url?"":"👤"}
+function readImage(input,cb){const f=input.files[0];if(!f)return;if(f.size>2*1024*1024){$("profileMsg").textContent="A imagem deve ter no máximo 2 MB.";input.value="";return}const rd=new FileReader();rd.onload=()=>cb(rd.result);rd.readAsDataURL(f)}
+$("avatarInput").onchange=()=>readImage($("avatarInput"),x=>setPreview("avatarPreview",x));$("bannerInput").onchange=()=>readImage($("bannerInput"),x=>setPreview("bannerPreview",x));
+$("saveProfileBtn").onclick=async()=>{const body={description:$("descriptionInput").value.trim()};const av=$("avatarPreview").style.backgroundImage,bn=$("bannerPreview").style.backgroundImage;if(av&&av!=="none")body.avatar=av.slice(5,-2);if(bn&&bn!=="none")body.banner=bn.slice(5,-2);try{const r=await fetch("/api/profile",{method:"PUT",headers:{"Content-Type":"application/json","x-username":username},body:JSON.stringify(body)}),d=await r.json();if(!r.ok)throw new Error(d.error);currentProfile=d;applyProfile(d);$("editModal").classList.add("hidden");$("profileModal").classList.remove("hidden")}catch(e){$("profileMsg").textContent=e.message}};
+$("callBtn").onclick=()=>startCall();async function getMic(){return navigator.mediaDevices.getUserMedia({audio:true,video:false})}async function makePC(){pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});pc.onicecandidate=e=>{if(e.candidate)socket.emit("webrtc:ice",{candidate:e.candidate})};pc.ontrack=e=>{let a=$("remoteAudio");if(!a){a=document.createElement("audio");a.id="remoteAudio";a.autoplay=true;document.body.appendChild(a)}a.srcObject=e.streams[0]};localStream=await getMic();localStream.getTracks().forEach(t=>pc.addTrack(t,localStream))}async function startCall(){if(inCall)return;inCall=true;showCall("Ligando...","Você iniciou uma chamada.",false);await makePC();const offer=await pc.createOffer();await pc.setLocalDescription(offer);socket.emit("call:invite");socket.emit("webrtc:offer",{offer})}socket.on("call:incoming",d=>{showCall("Chamada recebida",`${d.from} está ligando...`,true);ring.currentTime=0;ring.play().catch(()=>{})});socket.on("call:accepted",()=>{$("callStatus").textContent="Chamada conectada."});socket.on("webrtc:offer",async({offer})=>{if(inCall)return;inCall=true;ring.pause();await makePC();await pc.setRemoteDescription(offer);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);socket.emit("webrtc:answer",{answer})});socket.on("webrtc:answer",async({answer})=>{if(pc)await pc.setRemoteDescription(answer)});socket.on("webrtc:ice",async({candidate})=>{if(pc&&candidate)try{await pc.addIceCandidate(candidate)}catch{}});socket.on("call:ended",endCall);$("accept").onclick=async()=>{ring.pause();$("accept").classList.add("hidden");$("reject").classList.add("hidden");$("end").classList.remove("hidden");$("callStatus").textContent="Conectando...";socket.emit("call:accept")};$("reject").onclick=()=>{ring.pause();socket.emit("call:reject");hideCall()};$("end").onclick=()=>{socket.emit("call:end");endCall()};function showCall(t,s,i){$("callTitle").textContent=t;$("callStatus").textContent=s;$("callModal").classList.remove("hidden");$("accept").classList.toggle("hidden",!i);$("end").classList.toggle("hidden",i);$("reject").classList.toggle("hidden",!i)}function hideCall(){$("callModal").classList.add("hidden")}function endCall(){ring.pause();ring.currentTime=0;if(localStream)localStream.getTracks().forEach(t=>t.stop());if(pc){pc.close();pc=null}inCall=false;hideCall()}
